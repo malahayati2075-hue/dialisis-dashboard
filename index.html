@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Dialisis – Internal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 20px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .card {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .number {
+      font-size: 28px;
+      font-weight: bold;
+      color: #0ea5e9;
+    }
+    select {
+      padding: 6px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Dashboard Dialisis (Internal)</h1>
+
+<label>
+  Pilih Shift:
+  <select id="shift" onchange="loadData()">
+    <option value="">Semua</option>
+    <option value="1">Shift 1</option>
+    <option value="2">Shift 2</option>
+  </select>
+</label>
+
+<div class="grid">
+  <div class="card">
+    <div>Total Pasien</div>
+    <div class="number" id="totalPasien">0</div>
+  </div>
+  <div class="card">
+    <div>Total Tindakan HD</div>
+    <div class="number" id="totalTindakan">0</div>
+  </div>
+  <div class="card">
+    <div>Rawat Inap</div>
+    <div class="number" id="rawatInap">0</div>
+  </div>
+  <div class="card">
+    <div>Rawat Jalan</div>
+    <div class="number" id="rawatJalan">0</div>
+  </div>
+</div>
+
+<script>
+async function loadData() {
+  const shift = document.getElementById('shift').value;
+  const res = await fetch(`http://localhost:3001/api/dashboard?shift=${shift}`);
+  const data = await res.json();
+
+  document.getElementById('totalPasien').textContent = data.totalPasien;
+  document.getElementById('totalTindakan').textContent = data.totalTindakan;
+  document.getElementById('rawatInap').textContent = data.rawatInap;
+  document.getElementById('rawatJalan').textContent = data.rawatJalan;
+}
+
+loadData();
+</script>
+
+</body>
+</html>
