@@ -1,90 +1,117 @@
-const API_BASE = 'http://localhost:3001';
+/* =========================
+   KONFIGURASI
+========================= */
+const API_BASE = "http://localhost:3001"; 
+// kalau backend sudah online, ganti ke URL backend kamu
 
 let chartHD = null;
+
+/* =========================
+   NAVIGASI SLIDE
+========================= */
+function showDashboard() {
+  document.getElementById("slide-dashboard").style.display = "block";
+  document.getElementById("slide-pasien").style.display = "none";
+}
+
+function showPasien() {
+  document.getElementById("slide-dashboard").style.display = "none";
+  document.getElementById("slide-pasien").style.display = "block";
+  loadTable();
+}
 
 /* =========================
    LOAD DASHBOARD
 ========================= */
 async function loadDashboard() {
-  const shift = document.getElementById('shift').value;
-
   try {
-    /* ========= DASHBOARD ========= */
-    const dashRes = await fetch(`${API_BASE}/api/dashboard${shift ? `?shift=${shift}` : ''}`);
-    const dash = await dashRes.json();
+    const shift = document.getElementById("shift").value;
+    const url = `${API_BASE}/api/dashboard${shift ? `?shift=${shift}` : ""}`;
 
-    document.getElementById('totalPasien').textContent = dash.totalPasien;
-    document.getElementById('totalHD').textContent = dash.totalTindakan;
-    document.getElementById('rawatInap').textContent = dash.rawatInap;
-    document.getElementById('rawatJalan').textContent = dash.rawatJalan;
-    document.getElementById('bed').textContent = `${dash.totalPasien} / 29`;
+    const res = await fetch(url);
+    const data = await res.json();
 
-    /* ========= DETAIL DATA ========= */
-    const lapRes = await fetch(`${API_BASE}/api/laporan`);
-    const lap = await lapRes.json();
+    document.getElementById("totalPasien").textContent = data.totalPasien || 0;
+    document.getElementById("totalHD").textContent = data.totalTindakan || 0;
+    document.getElementById("rawatInap").textContent = data.rawatInap || 0;
+    document.getElementById("rawatJalan").textContent = data.rawatJalan || 0;
+    document.getElementById("av").textContent = data.av || 0;
+    document.getElementById("dl").textContent = data.dl || 0;
+    document.getElementById("bed").textContent = `${data.totalPasien || 0} / 29`;
 
-    let av = 0;
-    let dl = 0;
-
-    const tbody = document.getElementById('table-body');
-    tbody.innerHTML = '';
-
-    lap.data
-      .filter(d => !shift || d.shift === shift)
-      .forEach(d => {
-        if (d.vaskuler === 'AV-Shunt') av++;
-        if (d.vaskuler === 'DLP' || d.vaskuler === 'DLT') dl++;
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${d.nama}</td>
-          <td>${d.mr}</td>
-          <td>${d.shift}</td>
-          <td style="color:${d.hb < 8 ? 'red' : 'black'}">${d.hb}</td>
-          <td>${d.status}</td>
-          <td>${d.ruang || '-'}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-    document.getElementById('av').textContent = av;
-    document.getElementById('dl').textContent = dl;
-
-    /* ========= GRAFIK ========= */
-    buildChart(lap.data);
+    renderChart(data.chart || []);
 
   } catch (err) {
-    console.error(err);
-    alert('Gagal memuat data dashboard');
+    console.error("Gagal load dashboard:", err);
+    alert("Dashboard gagal dimuat");
   }
 }
 
 /* =========================
-   GRAFIK 7 HARI
+   LOAD TABEL PASIEN
 ========================= */
-function buildChart(data) {
-  const last7 = {};
+async function loadTable() {
+  try {
+    const res = await fetch(`${API_BASE}/api/laporan`);
+    const json = await res.json();
 
-  data.forEach(d => {
-    if (!last7[d.tanggal]) last7[d.tanggal] = 0;
-    last7[d.tanggal]++;
-  });
+    const tbody = document.getElementById("table-body");
+    tbody.innerHTML = "";
 
-  const labels = Object.keys(last7).slice(-7);
-  const values = Object.values(last7).slice(-7);
+    json.data.forEach(row => {
+      const tr = document.createElement("tr");
 
-  const ctx = document.getElementById('chartHD');
+      tr.innerHTML = `
+        <td>${row.nama || ""}</td>
+        <td>${row.mr || ""}</td>
+        <td>${row.shift || ""}</td>
+        <td style="color:${row.hb < 8 ? "red" : "black"}">${row.hb ?? ""}</td>
+        <td>${row.status || ""}</td>
+        <td>${row.ruang || ""}</td>
+      `;
 
-  if (chartHD) chartHD.destroy();
+      tbody.appendChild(tr);
+    });
+
+  } catch (err) {
+    console.error("Gagal load tabel:", err);
+    alert("Data pasien gagal dimuat");
+  }
+}
+
+/* =========================
+   GRAFIK CHART.JS
+========================= */
+function renderChart(chartData) {
+  const ctx = document.getElementById("chartHD");
+
+  if (!ctx) return;
+
+  if (chartHD) {
+    chartHD.destroy();
+  }
+
+  // dummy fallback kalau backend belum kirim chart
+  if (chartData.length === 0) {
+    chartData = [
+      { label: "H-6", value: 0 },
+      { label: "H-5", value: 0 },
+      { label: "H-4", value: 0 },
+      { label: "H-3", value: 0 },
+      { label: "H-2", value: 0 },
+      { label: "H-1", value: 0 },
+      { label: "Hari ini", value: 0 }
+    ];
+  }
 
   chartHD = new Chart(ctx, {
-    type: 'bar',
+    type: "bar",
     data: {
-      labels,
+      labels: chartData.map(d => d.label),
       datasets: [{
-        label: 'Jumlah Tindakan HD',
-        data: values,
-        backgroundColor: '#0ea5e9'
+        label: "Jumlah Tindakan HD",
+        data: chartData.map(d => d.value),
+        backgroundColor: "#0ea5e9"
       }]
     },
     options: {
@@ -94,7 +121,8 @@ function buildChart(data) {
       },
       scales: {
         y: {
-          beginAtZero: true
+          beginAtZero: true,
+          ticks: { precision: 0 }
         }
       }
     }
@@ -102,6 +130,9 @@ function buildChart(data) {
 }
 
 /* =========================
-   AUTO LOAD
+   AUTO LOAD SAAT PAGE BUKA
 ========================= */
-loadDashboard();
+document.addEventListener("DOMContentLoaded", () => {
+  showDashboard();
+  loadDashboard();
+});
