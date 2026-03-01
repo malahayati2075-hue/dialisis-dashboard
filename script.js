@@ -3,6 +3,18 @@ let globalChartData = [];
 let chartHD = null;
 
 /* =========================
+   FUNGSI HELPER TANGGAL LOKAL
+   Mengambil tanggal saat ini sesuai zona waktu komputer (WIB/WITA/WIT)
+========================= */
+function getLocalDate() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/* =========================
    NAVIGASI SLIDE
 ========================= */
 function showDashboard(e) {
@@ -72,7 +84,6 @@ async function loadDashboard() {
     const totalBed = data.bed?.total || 29;
     document.getElementById("bed").textContent = `${terpakai || 0} / ${totalBed}`;
 
-    // Default: Tampilkan chart Total Pasien saat pertama kali load
     changeChart('total', 'Total Pasien');
 
   } catch (err) {
@@ -82,11 +93,10 @@ async function loadDashboard() {
 
 /* =========================
    FUNGSI GANTI GRAFIK
-   Logika: Menentukan batas atas (maxY) grafik berdasarkan Filter Tim
 ========================= */
 function changeChart(type, label) {
   const tim = document.getElementById("filter-tim").value;
-  let maxY = 29; // Default jika "Semua Tim" (15 + 14)
+  let maxY = 29; 
 
   if (tim === "Tim 1") maxY = 15;
   else if (tim === "Tim 2") maxY = 14;
@@ -138,6 +148,7 @@ async function loadTable() {
 
 /* =========================
    SUBMIT DATA PASIEN
+   PERBAIKAN: Pakai getLocalDate() agar sesuai tanggal komputer
 ========================= */
 async function submitPasien(e) {
   e.preventDefault();
@@ -157,7 +168,7 @@ async function submitPasien(e) {
     hb: document.getElementById("input-hb").value,
     status: document.getElementById("input-status").value,
     ruang: document.getElementById("input-ruang").value,
-    tanggal: new Date().toISOString().split('T')[0]
+    tanggal: getLocalDate() // <-- PERBAIKAN DI SINI
   };
 
   try {
@@ -226,7 +237,6 @@ function exportPDF() {
 
 /* =========================
    GRAFIK CHART.JS
-   Pengaturan untuk ukuran kecil & Responsif
 ========================= */
 function renderChart(chartData, type, label, maxY) {
   const ctx = document.getElementById("chartHD");
@@ -251,22 +261,19 @@ function renderChart(chartData, type, label, maxY) {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false, // Penting agar grafik mengikuti tinggi container CSS (180px)
+      maintainAspectRatio: false,
       plugins: { 
-        legend: { 
-          display: true,
-          labels: { font: { size: 10 } } // Font kecil untuk legend
-        }
+        legend: { display: true, labels: { font: { size: 10 } } }
       },
       scales: { 
         y: { 
           beginAtZero: true, 
           max: maxY,
-          ticks: { precision: 0, font: { size: 10 } } // Font kecil untuk angka Y
+          ticks: { precision: 0, font: { size: 10 } } 
         },
         x: {
           ticks: {
-            font: { size: 10 }, // Font kecil untuk tanggal
+            font: { size: 10 },
             maxRotation: 0,
             autoSkip: true
           }
@@ -278,12 +285,14 @@ function renderChart(chartData, type, label, maxY) {
 
 /* =========================
    AUTO LOAD
+   PERBAIKAN: Filter default pakai getLocalDate()
 ========================= */
 document.addEventListener("DOMContentLoaded", () => {
-  const today = new Date().toISOString().split('T')[0];
+  // Set filter default ke hari ini (Lokal)
+  const today = getLocalDate();
   document.getElementById("filter-start").value = today;
   document.getElementById("filter-end").value = today;
 
   toggleRuang();
-  showDashboard(); // Panggil tanpa event saat pertama kali load
+  showDashboard();
 });
