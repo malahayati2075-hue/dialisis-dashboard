@@ -15,11 +15,11 @@
 
   <!-- NAV SLIDE -->
   <div class="nav-slide">
-    <button class="active" onclick="showDashboard()">Dashboard</button>
-    <button onclick="showPasien()">Data Pasien</button>
+    <button class="active" onclick="showDashboard(event)">Dashboard</button>
+    <button onclick="showPasien(event)">Data Pasien</button>
   </div>
 
-  <!-- FILTER (DIPERBARUI) -->
+  <!-- FILTER -->
   <div class="filter">
     <div class="filter-group">
       <label>Tanggal Mulai</label>
@@ -51,41 +51,51 @@
   <!-- ======================
        SLIDE 1 : DASHBOARD
   ======================= -->
-     <!-- Stats Grid (Ganti bagian ini) -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      
-      <div class="metric-card cursor-pointer hover:border-cyan-400" onclick="changeChart('total', 'Total Pasien')">
-        <p class="text-xs text-slate-400 uppercase">Total Pasien</p>
-        <p class="text-3xl font-bold mono mt-1" id="totalPasien">0</p>
+  <div id="slide-dashboard">
+    
+    <!-- Stats Grid -->
+    <div class="grid-container">
+      <div class="card clickable" onclick="changeChart('total', 'Total Pasien')">
+        <p class="text-label">Total Pasien</p>
+        <p class="text-value" id="totalPasien">0</p>
       </div>
-      <div class="metric-card cursor-pointer hover:border-cyan-400" onclick="changeChart('total', 'Total Tindakan HD')">
-        <p class="text-xs text-slate-400 uppercase">Total Tindakan HD</p>
-        <p class="text-3xl font-bold mono mt-1 text-cyan-400" id="totalHD">0</p>
+      <div class="card clickable" onclick="changeChart('total', 'Total Tindakan HD')">
+        <p class="text-label">Total Tindakan HD</p>
+        <p class="text-value text-cyan" id="totalHD">0</p>
       </div>
-      <div class="metric-card cursor-pointer hover:border-red-400" onclick="changeChart('rawatInap', 'Rawat Inap')">
-        <p class="text-xs text-slate-400 uppercase">Rawat Inap</p>
-        <p class="text-3xl font-bold mono mt-1 text-red-400" id="rawatInap">0</p>
+      <div class="card clickable" onclick="changeChart('rawatInap', 'Rawat Inap')">
+        <p class="text-label">Rawat Inap</p>
+        <p class="text-value text-red" id="rawatInap">0</p>
       </div>
-      <div class="metric-card cursor-pointer hover:border-green-400" onclick="changeChart('rawatJalan', 'Rawat Jalan')">
-        <p class="text-xs text-slate-400 uppercase">Rawat Jalan</p>
-        <p class="text-3xl font-bold mono mt-1 text-green-400" id="rawatJalan">0</p>
+      <div class="card clickable" onclick="changeChart('rawatJalan', 'Rawat Jalan')">
+        <p class="text-label">Rawat Jalan</p>
+        <p class="text-value text-green" id="rawatJalan">0</p>
       </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-4 mb-6">
-      <div class="metric-card cursor-pointer hover:border-teal-400" onclick="changeChart('avShunt', 'AV-Shunt')">
-        <p class="text-xs text-slate-400 uppercase">AV-Shunt</p>
-        <p class="text-3xl font-bold mono mt-1" id="av">0</p>
+    <div class="grid-container-3">
+      <div class="card clickable" onclick="changeChart('avShunt', 'AV-Shunt')">
+        <p class="text-label">AV-Shunt</p>
+        <p class="text-value" id="av">0</p>
       </div>
-      <div class="metric-card cursor-pointer hover:border-teal-400" onclick="changeChart('doubleLumen', 'Double Lumen')">
-        <p class="text-xs text-slate-400 uppercase">Double Lumen</p>
-        <p class="text-3xl font-bold mono mt-1" id="dl">0</p>
+      <div class="card clickable" onclick="changeChart('doubleLumen', 'Double Lumen')">
+        <p class="text-label">Double Lumen</p>
+        <p class="text-value" id="dl">0</p>
       </div>
-      <div class="metric-card cursor-pointer hover:border-yellow-400" onclick="changeChart('total', 'Bed Terpakai')">
-        <p class="text-xs text-slate-400 uppercase">Bed Terpakai</p>
-        <p class="text-3xl font-bold mono mt-1" id="bed">0 / 29</p>
+      <div class="card clickable" onclick="changeChart('total', 'Bed Terpakai')">
+        <p class="text-label">Bed Terpakai</p>
+        <p class="text-value" id="bed">0 / 29</p>
       </div>
     </div>
+
+    <!-- Area Grafik -->
+    <div class="chart-box">
+      <h2>Grafik Tindakan</h2>
+      <canvas id="chartHD"></canvas>
+    </div>
+
+  </div>
+
   <!-- ======================
        SLIDE 2 : DATA PASIEN
   ======================= -->
@@ -98,7 +108,7 @@
       </div>
     </div>
 
-    <!-- FORM INPUT (DIPERBARUI) -->
+    <!-- FORM INPUT -->
     <div class="form-container">
       <form id="form-pasien" onsubmit="return submitPasien(event)">
         <div class="form-row">
@@ -170,7 +180,6 @@
             <label>Obat</label>
             <input type="text" id="input-obat" placeholder="Nama Obat">
           </div>
-          <!-- STATUS DIUBAH KE LENGKAP -->
           <div class="form-group">
             <label>Status</label>
             <select id="input-status" onchange="toggleRuang()">
@@ -178,7 +187,6 @@
               <option value="Rawat Inap">Rawat Inap</option>
             </select>
           </div>
-          <!-- RUANG DINONAKTIFKAN DEFAULT -->
           <div class="form-group">
             <label>Ruang</label>
             <input type="text" id="input-ruang" placeholder="Nama Ruangan" disabled>
