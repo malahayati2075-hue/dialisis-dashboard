@@ -1,4 +1,5 @@
 const API_BASE = "http://localhost:3001";
+let globalChartData = []; // Simpan data chart disini
 let chartHD = null;
 
 /* =========================
@@ -41,13 +42,11 @@ function toggleRuang() {
 ========================= */
 async function loadDashboard() {
   try {
-    // Ambil nilai filter
     const shift = document.getElementById("shift").value;
     const tim = document.getElementById("filter-tim").value;
     const start = document.getElementById("filter-start").value;
     const end = document.getElementById("filter-end").value;
 
-    // Bangun URL dengan query parameter
     let url = `${API_BASE}/api/dashboard?`;
     if (shift) url += `shift=${shift}&`;
     if (tim) url += `tim=${tim}&`;
@@ -57,25 +56,27 @@ async function loadDashboard() {
     const res = await fetch(url);
     const data = await res.json();
 
+    // Simpan data chart ke global variable
+    globalChartData = data.chart || [];
+
     document.getElementById("totalPasien").textContent = data.totalPasien || 0;
-    // Total Tindakan = Total Pasien sesuai permintaan
     document.getElementById("totalHD").textContent = data.totalPasien || 0; 
-    
     document.getElementById("rawatInap").textContent = data.rawatInap || 0;
     document.getElementById("rawatJalan").textContent = data.rawatJalan || 0;
     document.getElementById("av").textContent = data.vaskuler?.avShunt || 0;
     document.getElementById("dl").textContent = data.vaskuler?.doubleLumen || 0;
     
     const terpakai = data.bed?.tim1?.terpakai + data.bed?.tim2?.terpakai;
-    document.getElementById("bed").textContent = `${terpakai || 0} / 29`;
+    const totalBed = data.bed?.total || 29;
+    document.getElementById("bed").textContent = `${terpakai || 0} / ${totalBed}`;
 
-    renderChart(data.chart || []);
+    // Default: Tampilkan chart Total Pasien saat pertama kali load
+    changeChart('total', 'Total Pasien');
 
   } catch (err) {
     console.error("Gagal load dashboard:", err);
   }
 }
-
 /* =========================
    LOAD TABEL PASIEN
 ========================= */
@@ -211,35 +212,47 @@ function exportPDF() {
 }
 
 /* =========================
-   GRAFIK CHART.JS
+   GRAFIK CHART.JS (DIPERBARUI)
 ========================= */
-function renderChart(chartData) {
+function renderChart(chartData, type, label, maxY) {
   const ctx = document.getElementById("chartHD");
   if (!ctx) return;
   if (chartHD) chartHD.destroy();
 
+  // Jika data kosong
   if (chartData.length === 0) {
-    chartData = [{ label: "Tidak ada data", value: 0 }];
+    chartData = [{ label: "Tidak ada data", total: 0, rawatInap: 0, rawatJalan: 0, avShunt: 0, doubleLumen: 0 }];
   }
+
+  // Ambil data spesifik berdasarkan type
+  // Mapping key dari backend: total, rawatInap, rawatJalan, avShunt, doubleLumen
+  let values = chartData.map(d => d[type] || 0);
 
   chartHD = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: chartData.map(d => d.label),
+      labels: chartData.map(d => d.label), // Label Tanggal
       datasets: [{
-        label: "Jumlah Tindakan HD",
-        data: chartData.map(d => d.value),
+        label: label, // Judul Dinamis
+        data: values,
         backgroundColor: "#0ea5e9"
       }]
     },
     options: {
       responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      plugins: { 
+        legend: { display: true } // Tampilkan judul dataset
+      },
+      scales: { 
+        y: { 
+          beginAtZero: true, 
+          max: maxY, // Batas atas dinamis (15, 14, atau 29)
+          ticks: { precision: 0 } 
+        } 
+      }
     }
   });
 }
-
 /* =========================
    AUTO LOAD & DEFAULT DATE
 ========================= */
