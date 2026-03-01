@@ -1,21 +1,21 @@
-const API_BASE = "http://localhost:3001"; // Perbaikan: Hapus komentar
+const API_BASE = "http://localhost:3001";
 let globalChartData = []; 
 let chartHD = null;
 
 /* =========================
    NAVIGASI SLIDE
 ========================= */
-function showDashboard(e) { // Tambah parameter event
+function showDashboard(e) {
   document.getElementById("slide-dashboard").style.display = "block";
   document.getElementById("slide-pasien").style.display = "none";
   
   document.querySelectorAll('.nav-slide button').forEach(btn => btn.classList.remove('active'));
-  if(e && e.target) e.target.classList.add('active'); // Perbaikan pengecekan event
+  if(e && e.target) e.target.classList.add('active');
   
   loadDashboard();
 }
 
-function showPasien(e) { // Tambah parameter event
+function showPasien(e) {
   document.getElementById("slide-dashboard").style.display = "none";
   document.getElementById("slide-pasien").style.display = "block";
   
@@ -72,6 +72,7 @@ async function loadDashboard() {
     const totalBed = data.bed?.total || 29;
     document.getElementById("bed").textContent = `${terpakai || 0} / ${totalBed}`;
 
+    // Default: Tampilkan chart Total Pasien saat pertama kali load
     changeChart('total', 'Total Pasien');
 
   } catch (err) {
@@ -80,11 +81,12 @@ async function loadDashboard() {
 }
 
 /* =========================
-   FUNGSI GANTI GRAFIK (BARU DITAMBAHKAN)
+   FUNGSI GANTI GRAFIK
+   Logika: Menentukan batas atas (maxY) grafik berdasarkan Filter Tim
 ========================= */
 function changeChart(type, label) {
   const tim = document.getElementById("filter-tim").value;
-  let maxY = 29; 
+  let maxY = 29; // Default jika "Semua Tim" (15 + 14)
 
   if (tim === "Tim 1") maxY = 15;
   else if (tim === "Tim 2") maxY = 14;
@@ -224,6 +226,7 @@ function exportPDF() {
 
 /* =========================
    GRAFIK CHART.JS
+   Pengaturan untuk ukuran kecil & Responsif
 ========================= */
 function renderChart(chartData, type, label, maxY) {
   const ctx = document.getElementById("chartHD");
@@ -248,15 +251,26 @@ function renderChart(chartData, type, label, maxY) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false, // Penting agar grafik mengikuti tinggi container CSS (180px)
       plugins: { 
-        legend: { display: true }
+        legend: { 
+          display: true,
+          labels: { font: { size: 10 } } // Font kecil untuk legend
+        }
       },
       scales: { 
         y: { 
           beginAtZero: true, 
           max: maxY,
-          ticks: { precision: 0 } 
-        } 
+          ticks: { precision: 0, font: { size: 10 } } // Font kecil untuk angka Y
+        },
+        x: {
+          ticks: {
+            font: { size: 10 }, // Font kecil untuk tanggal
+            maxRotation: 0,
+            autoSkip: true
+          }
+        }
       }
     }
   });
