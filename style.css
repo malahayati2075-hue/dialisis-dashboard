@@ -1,0 +1,49 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f8fafc;
+  padding: 20px;
+}
+
+h1, h2 {
+  margin-bottom: 10px;
+}
+
+.cards {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  min-width: 150px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,.1);
+}
+
+.card span {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+th {
+  background: #0ea5e9;
+  color: white;
+}
+
+.filter {
+  margin-bottom: 15px;
+}
