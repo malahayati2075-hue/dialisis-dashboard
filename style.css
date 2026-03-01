@@ -1,49 +1,178 @@
 body {
-  font-family: Arial, sans-serif;
-  background: #f8fafc;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
   padding: 20px;
+  margin: 0;
 }
 
 h1, h2 {
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  color: #333;
 }
 
+/* NAVIGASI */
+.nav-slide {
+  margin-bottom: 20px;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.nav-slide button {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 3px solid transparent;
+}
+
+.nav-slide button:hover {
+  color: #0ea5e9;
+}
+
+.nav-slide button.active {
+  color: #0ea5e9;
+  border-bottom: 3px solid #0ea5e9;
+}
+
+/* CARDS */
 .cards {
   display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
 }
 
 .card {
   background: white;
-  padding: 15px;
-  border-radius: 6px;
-  min-width: 150px;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,.1);
+  padding: 20px;
+  border-radius: 8px;
+  min-width: 180px;
+  flex: 1;
+  box-shadow: 0 2px 5px rgba(0,0,0,.05);
+  border-left: 4px solid #0ea5e9;
 }
 
 .card span {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: bold;
+  color: #0ea5e9;
+}
+
+/* FILTER & BUTTONS */
+.filter {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: inline-flex;
+  gap: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+select, input[type="text"], input[type="number"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.btn-group {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-simpan {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.btn-simpan:hover { background: #059669; }
+
+.btn-pdf {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.btn-pdf:hover { background: #dc2626; }
+
+/* FORM INPUT */
+.form-container {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,.05);
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 12px;
+  margin-bottom: 5px;
+  color: #666;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* TABLE */
+.table-container {
+  overflow-x: auto;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
   background: white;
+  font-size: 14px;
 }
 
 th, td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 10px;
+  text-align: left;
 }
 
 th {
   background: #0ea5e9;
   color: white;
+  position: sticky;
+  top: 0;
 }
 
-.filter {
-  margin-bottom: 15px;
+tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+/* HEADER PASIEN */
+.header-pasien {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
