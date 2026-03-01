@@ -36,10 +36,17 @@ h1, h2 {
   border-bottom: 3px solid #0ea5e9;
 }
 
-/* CARDS */
-.cards {
-  display: flex;
-  flex-wrap: wrap;
+/* CARDS & GRID LAYOUT */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.grid-container-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 15px;
   margin-bottom: 20px;
 }
@@ -48,35 +55,94 @@ h1, h2 {
   background: white;
   padding: 20px;
   border-radius: 8px;
-  min-width: 180px;
-  flex: 1;
   box-shadow: 0 2px 5px rgba(0,0,0,.05);
   border-left: 4px solid #0ea5e9;
+  transition: transform 0.2s;
 }
 
-.card span {
-  font-size: 24px;
+.card.clickable {
+  cursor: pointer;
+}
+
+.card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,.1);
+  border-left-color: #0056b3;
+}
+
+.text-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.text-value {
+  font-size: 28px;
   font-weight: bold;
-  color: #0ea5e9;
+  color: #333;
+}
+
+.text-cyan { color: #0ea5e9; }
+.text-red { color: #ef4444; }
+.text-green { color: #10b981; }
+
+/* CHART BOX */
+.chart-box {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,.05);
+  margin-top: 20px;
 }
 
 /* FILTER & BUTTONS */
 .filter {
   background: white;
-  padding: 15px;
+  padding: 20px;
   border-radius: 8px;
   margin-bottom: 20px;
-  display: inline-flex;
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap; /* Agar responsive */
+  align-items: flex-end; /* Sejajar bawah */
+  gap: 15px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-select, input[type="text"], input[type="number"] {
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  color: #666;
+}
+
+.filter button {
+  height: 38px; /* Samakan tinggi dengan input */
+  padding: 0 20px;
+  background: #0ea5e9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.filter button:hover {
+  background: #0284c7;
+}
+
+select, input[type="text"], input[type="number"], input[type="date"] {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  min-width: 150px;
 }
 
+/* BUTTONS */
 .btn-group {
   display: flex;
   gap: 10px;
@@ -86,11 +152,12 @@ select, input[type="text"], input[type="number"] {
   background: #10b981;
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 12px 20px;
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
   margin-top: 10px;
+  width: 100%;
 }
 
 .btn-simpan:hover { background: #059669; }
