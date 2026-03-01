@@ -51,47 +51,41 @@
   <!-- ======================
        SLIDE 1 : DASHBOARD
   ======================= -->
-  <div id="slide-dashboard">
-    <div class="cards">
-      <div class="card">
-        Total Pasien<br>
-        <span id="totalPasien">0</span>
+     <!-- Stats Grid (Ganti bagian ini) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      
+      <div class="metric-card cursor-pointer hover:border-cyan-400" onclick="changeChart('total', 'Total Pasien')">
+        <p class="text-xs text-slate-400 uppercase">Total Pasien</p>
+        <p class="text-3xl font-bold mono mt-1" id="totalPasien">0</p>
       </div>
-      <div class="card">
-        Total Tindakan HD<br>
-        <span id="totalHD">0</span>
+      <div class="metric-card cursor-pointer hover:border-cyan-400" onclick="changeChart('total', 'Total Tindakan HD')">
+        <p class="text-xs text-slate-400 uppercase">Total Tindakan HD</p>
+        <p class="text-3xl font-bold mono mt-1 text-cyan-400" id="totalHD">0</p>
       </div>
-      <div class="card">
-        Rawat Inap<br>
-        <span id="rawatInap">0</span>
+      <div class="metric-card cursor-pointer hover:border-red-400" onclick="changeChart('rawatInap', 'Rawat Inap')">
+        <p class="text-xs text-slate-400 uppercase">Rawat Inap</p>
+        <p class="text-3xl font-bold mono mt-1 text-red-400" id="rawatInap">0</p>
       </div>
-      <div class="card">
-        Rawat Jalan<br>
-        <span id="rawatJalan">0</span>
-      </div>
-    </div>
-
-    <div class="cards">
-      <div class="card">
-        AV-Shunt<br>
-        <span id="av">0</span>
-      </div>
-      <div class="card">
-        Double Lumen<br>
-        <span id="dl">0</span>
-      </div>
-      <div class="card">
-        Bed Terpakai<br>
-        <span id="bed">0 / 29</span>
+      <div class="metric-card cursor-pointer hover:border-green-400" onclick="changeChart('rawatJalan', 'Rawat Jalan')">
+        <p class="text-xs text-slate-400 uppercase">Rawat Jalan</p>
+        <p class="text-3xl font-bold mono mt-1 text-green-400" id="rawatJalan">0</p>
       </div>
     </div>
 
-    <h2>Grafik Tindakan (Periode Terpilih)</h2>
-    <div class="chart-container">
-      <canvas id="chartHD" height="120"></canvas>
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="metric-card cursor-pointer hover:border-teal-400" onclick="changeChart('avShunt', 'AV-Shunt')">
+        <p class="text-xs text-slate-400 uppercase">AV-Shunt</p>
+        <p class="text-3xl font-bold mono mt-1" id="av">0</p>
+      </div>
+      <div class="metric-card cursor-pointer hover:border-teal-400" onclick="changeChart('doubleLumen', 'Double Lumen')">
+        <p class="text-xs text-slate-400 uppercase">Double Lumen</p>
+        <p class="text-3xl font-bold mono mt-1" id="dl">0</p>
+      </div>
+      <div class="metric-card cursor-pointer hover:border-yellow-400" onclick="changeChart('total', 'Bed Terpakai')">
+        <p class="text-xs text-slate-400 uppercase">Bed Terpakai</p>
+        <p class="text-3xl font-bold mono mt-1" id="bed">0 / 29</p>
+      </div>
     </div>
-  </div>
-
   <!-- ======================
        SLIDE 2 : DATA PASIEN
   ======================= -->
