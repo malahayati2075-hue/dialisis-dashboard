@@ -1,29 +1,32 @@
-const API_BASE = "http://localhost:3001";
-let globalChartData = []; // Simpan data chart disini
+const API_BASE = "http://localhost:3001"; // Perbaikan: Hapus komentar
+let globalChartData = []; 
 let chartHD = null;
 
 /* =========================
    NAVIGASI SLIDE
 ========================= */
-function showDashboard() {
+function showDashboard(e) { // Tambah parameter event
   document.getElementById("slide-dashboard").style.display = "block";
   document.getElementById("slide-pasien").style.display = "none";
+  
   document.querySelectorAll('.nav-slide button').forEach(btn => btn.classList.remove('active'));
-  // Fix event target undefined jika dipanggil dari domcontentloaded
-  if(event && event.target) event.target.classList.add('active');
+  if(e && e.target) e.target.classList.add('active'); // Perbaikan pengecekan event
+  
   loadDashboard();
 }
 
-function showPasien() {
+function showPasien(e) { // Tambah parameter event
   document.getElementById("slide-dashboard").style.display = "none";
   document.getElementById("slide-pasien").style.display = "block";
+  
   document.querySelectorAll('.nav-slide button').forEach(btn => btn.classList.remove('active'));
-  if(event && event.target) event.target.classList.add('active');
+  if(e && e.target) e.target.classList.add('active');
+  
   loadTable();
 }
 
 /* =========================
-   FUNGSI LOGIKA RUANG (BARU)
+   FUNGSI LOGIKA RUANG
 ========================= */
 function toggleRuang() {
   const status = document.getElementById("input-status").value;
@@ -31,14 +34,14 @@ function toggleRuang() {
   
   if (status === "Rawat Jalan") {
     ruangInput.disabled = true;
-    ruangInput.value = ""; // Kosongkan nilai
+    ruangInput.value = "";
   } else {
     ruangInput.disabled = false;
   }
 }
 
 /* =========================
-   LOAD DASHBOARD (DENGAN FILTER BARU)
+   LOAD DASHBOARD
 ========================= */
 async function loadDashboard() {
   try {
@@ -56,7 +59,6 @@ async function loadDashboard() {
     const res = await fetch(url);
     const data = await res.json();
 
-    // Simpan data chart ke global variable
     globalChartData = data.chart || [];
 
     document.getElementById("totalPasien").textContent = data.totalPasien || 0;
@@ -70,20 +72,31 @@ async function loadDashboard() {
     const totalBed = data.bed?.total || 29;
     document.getElementById("bed").textContent = `${terpakai || 0} / ${totalBed}`;
 
-    // Default: Tampilkan chart Total Pasien saat pertama kali load
     changeChart('total', 'Total Pasien');
 
   } catch (err) {
     console.error("Gagal load dashboard:", err);
   }
 }
+
+/* =========================
+   FUNGSI GANTI GRAFIK (BARU DITAMBAHKAN)
+========================= */
+function changeChart(type, label) {
+  const tim = document.getElementById("filter-tim").value;
+  let maxY = 29; 
+
+  if (tim === "Tim 1") maxY = 15;
+  else if (tim === "Tim 2") maxY = 14;
+
+  renderChart(globalChartData, type, label, maxY);
+}
+
 /* =========================
    LOAD TABEL PASIEN
 ========================= */
 async function loadTable() {
   try {
-    // Untuk tabel di slide 2, kita bisa ambil semua data atau filter tanggal juga
-    // Disini ambil semua data terbaru
     const res = await fetch(`${API_BASE}/api/laporan`);
     const json = await res.json();
 
@@ -126,8 +139,6 @@ async function loadTable() {
 ========================= */
 async function submitPasien(e) {
   e.preventDefault();
-
-  // Pastikan logika ruang berjalan sebelum kirim
   toggleRuang(); 
 
   const data = {
@@ -159,7 +170,7 @@ async function submitPasien(e) {
     if (res.ok) {
       alert("Data berhasil disimpan!");
       document.getElementById("form-pasien").reset();
-      toggleRuang(); // Reset state ruang ke default (disable)
+      toggleRuang();
       loadTable(); 
     } else {
       alert("Gagal simpan: " + (result.error || "Error unknown"));
@@ -212,28 +223,25 @@ function exportPDF() {
 }
 
 /* =========================
-   GRAFIK CHART.JS (DIPERBARUI)
+   GRAFIK CHART.JS
 ========================= */
 function renderChart(chartData, type, label, maxY) {
   const ctx = document.getElementById("chartHD");
   if (!ctx) return;
   if (chartHD) chartHD.destroy();
 
-  // Jika data kosong
   if (chartData.length === 0) {
     chartData = [{ label: "Tidak ada data", total: 0, rawatInap: 0, rawatJalan: 0, avShunt: 0, doubleLumen: 0 }];
   }
 
-  // Ambil data spesifik berdasarkan type
-  // Mapping key dari backend: total, rawatInap, rawatJalan, avShunt, doubleLumen
   let values = chartData.map(d => d[type] || 0);
 
   chartHD = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: chartData.map(d => d.label), // Label Tanggal
+      labels: chartData.map(d => d.label),
       datasets: [{
-        label: label, // Judul Dinamis
+        label: label,
         data: values,
         backgroundColor: "#0ea5e9"
       }]
@@ -241,29 +249,27 @@ function renderChart(chartData, type, label, maxY) {
     options: {
       responsive: true,
       plugins: { 
-        legend: { display: true } // Tampilkan judul dataset
+        legend: { display: true }
       },
       scales: { 
         y: { 
           beginAtZero: true, 
-          max: maxY, // Batas atas dinamis (15, 14, atau 29)
+          max: maxY,
           ticks: { precision: 0 } 
         } 
       }
     }
   });
 }
+
 /* =========================
-   AUTO LOAD & DEFAULT DATE
+   AUTO LOAD
 ========================= */
 document.addEventListener("DOMContentLoaded", () => {
-  // Set tanggal default ke hari ini
   const today = new Date().toISOString().split('T')[0];
   document.getElementById("filter-start").value = today;
   document.getElementById("filter-end").value = today;
 
-  // Init logika ruang
   toggleRuang();
-  
-  showDashboard();
+  showDashboard(); // Panggil tanpa event saat pertama kali load
 });
