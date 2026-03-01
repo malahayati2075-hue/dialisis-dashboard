@@ -2,115 +2,208 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Dialisis</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Library untuk PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
-<h1>Dashboard Dialisis</h1>
+  <h1>Dashboard Unit Dialisis</h1>
 
-<!-- NAV SLIDE -->
-<div class="nav-slide">
-  <button onclick="showDashboard()">Dashboard</button>
-  <button onclick="showPasien()">Data Pasien</button>
-</div>
-
-<!-- FILTER -->
-<div class="filter">
-  <select id="shift">
-    <option value="">Semua Shift</option>
-    <option value="1">Shift 1</option>
-    <option value="2">Shift 2</option>
-  </select>
-  <button onclick="loadDashboard()">Terapkan</button>
-</div>
-
-<!-- ======================
-     SLIDE 1 : DASHBOARD
-======================= -->
-<div id="slide-dashboard">
-
-  <div class="cards">
-    <div class="card">
-      Total Pasien<br>
-      <span id="totalPasien">0</span>
-    </div>
-
-    <div class="card">
-      Total Tindakan HD<br>
-      <span id="totalHD">0</span>
-    </div>
-
-    <div class="card">
-      Rawat Inap<br>
-      <span id="rawatInap">0</span>
-    </div>
-
-    <div class="card">
-      Rawat Jalan<br>
-      <span id="rawatJalan">0</span>
-    </div>
+  <!-- NAV SLIDE -->
+  <div class="nav-slide">
+    <button class="active" onclick="showDashboard()">Dashboard</button>
+    <button onclick="showPasien()">Data Pasien</button>
   </div>
 
-  <div class="cards">
-    <div class="card">
-      AV-Shunt<br>
-      <span id="av">0</span>
-    </div>
-
-    <div class="card">
-      Double Lumen<br>
-      <span id="dl">0</span>
-    </div>
-
-    <div class="card">
-      Bed Terpakai<br>
-      <span id="bed">0 / 29</span>
-    </div>
+  <!-- FILTER -->
+  <div class="filter">
+    <select id="shift">
+      <option value="">Semua Shift</option>
+      <option value="1">Shift 1</option>
+      <option value="2">Shift 2</option>
+    </select>
+    <button onclick="loadDashboard()">Terapkan Filter</button>
   </div>
 
-  <h2>Grafik Tindakan (7 Hari Terakhir)</h2>
-  <canvas id="chartHD" height="120"></canvas>
+  <!-- ======================
+       SLIDE 1 : DASHBOARD
+  ======================= -->
+  <div id="slide-dashboard">
 
-</div>
+    <div class="cards">
+      <div class="card">
+        Total Pasien<br>
+        <span id="totalPasien">0</span>
+      </div>
+      <div class="card">
+        Total Tindakan HD<br>
+        <span id="totalHD">0</span>
+      </div>
+      <div class="card">
+        Rawat Inap<br>
+        <span id="rawatInap">0</span>
+      </div>
+      <div class="card">
+        Rawat Jalan<br>
+        <span id="rawatJalan">0</span>
+      </div>
+    </div>
 
-<hr>
+    <div class="cards">
+      <div class="card">
+        AV-Shunt<br>
+        <span id="av">0</span>
+      </div>
+      <div class="card">
+        Double Lumen<br>
+        <span id="dl">0</span>
+      </div>
+      <div class="card">
+        Bed Terpakai<br>
+        <span id="bed">0 / 29</span>
+      </div>
+    </div>
 
-<!-- ======================
-     SLIDE 2 : DATA PASIEN
-======================= -->
-<div id="slide-pasien" style="display:none">
+    <h2>Grafik Tindakan (7 Hari Terakhir)</h2>
+    <div class="chart-container">
+      <canvas id="chartHD" height="120"></canvas>
+    </div>
 
-  <h2>Data Pasien</h2>
+  </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Nama</th>
-        <th>MR</th>
-        <th>Shift</th>
-        <th>Tim</th>
-        <th>Bayar</th>
-        <th>Hf</th>
-        <th>vaskuler</th>
-        <th>ak1</th>
-        <th>bicarbonate</th>
-        <th>obat</th>
-        <th>Hb</th>
-        <th>Status</th>
-        <th>Ruang</th>
-      </tr>
-    </thead>
-    <tbody id="table-body"></tbody>
-  </table>
+  <!-- ======================
+       SLIDE 2 : DATA PASIEN
+  ======================= -->
+  <div id="slide-pasien" style="display:none">
+    
+    <div class="header-pasien">
+      <h2>Input Data Pasien Baru</h2>
+      <div class="btn-group">
+        <button onclick="exportPDF()" class="btn-pdf">Cetak PDF</button>
+        <!-- Tombol WA bisa ditambahkan di sini jika perlu -->
+      </div>
+    </div>
 
-</div>
+    <!-- FORM INPUT -->
+    <div class="form-container">
+      <form id="form-pasien" onsubmit="return submitPasien(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nama Pasien</label>
+            <input type="text" id="input-nama" required placeholder="Nama Lengkap">
+          </div>
+          <div class="form-group">
+            <label>No. MR</label>
+            <input type="text" id="input-mr" required placeholder="Nomor Rekam Medis">
+          </div>
+          <div class="form-group">
+            <label>Shift</label>
+            <select id="input-shift" required>
+              <option value="1">Shift 1</option>
+              <option value="2">Shift 2</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tim</label>
+            <input type="text" id="input-tim" placeholder="Nama Tim">
+          </div>
+        </div>
 
-<!-- ======================
-     SCRIPT
-======================= -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="script.js"></script>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Jenis Bayar</label>
+            <select id="input-bayar">
+              <option>JKN</option>
+              <option>Umum</option>
+              <option>Asuransi</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>HF</label>
+            <select id="input-hf">
+              <option>130</option>
+              <option>150</option>
+              <option>90</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Vaskuler</label>
+            <select id="input-vaskuler">
+              <option>AV-Shunt</option>
+              <option>Double Lumen</option>
+              <option>Femoral</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Hb (gr/dl)</label>
+            <input type="number" step="0.1" id="input-hb" placeholder="Contoh: 10.5">
+          </div>
+        </div>
+
+        <div class="form-row">
+           <div class="form-group">
+            <label>AK1</label>
+            <input type="number" step="0.1" id="input-ak1" placeholder="Kebutuhan">
+          </div>
+          <div class="form-group">
+            <label>Bicarbonate</label>
+            <input type="number" id="input-bicarb" placeholder="Kebutuhan">
+          </div>
+          <div class="form-group">
+            <label>Obat</label>
+            <input type="text" id="input-obat" placeholder="Nama Obat">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="input-status">
+              <option>RJ</option>
+              <option>RI</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Ruang</label>
+            <input type="text" id="input-ruang" placeholder="Nama Ruangan">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-simpan">Simpan Data Pasien</button>
+      </form>
+    </div>
+
+    <!-- TABEL DATA -->
+    <h2 style="margin-top: 30px;">Riwayat Data Pasien</h2>
+    <div id="area-cetak"> <!-- ID ini untuk area cetak PDF -->
+      <table id="tabel-pasien">
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>MR</th>
+            <th>Shift</th>
+            <th>Tim</th>
+            <th>Bayar</th>
+            <th>Hf</th>
+            <th>Vaskuler</th>
+            <th>AK1</th>
+            <th>Bicarb</th>
+            <th>Obat</th>
+            <th>Hb</th>
+            <th>Status</th>
+            <th>Ruang</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- SCRIPT -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js"></script>
 
 </body>
 </html>
