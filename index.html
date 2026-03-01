@@ -19,23 +19,59 @@
   <button onclick="loadDashboard()">Terapkan</button>
 </div>
 
-<!-- SLIDE 1 -->
+<!-- ======================
+     SLIDE 1 : DASHBOARD
+======================= -->
 <div class="cards">
-  <div class="card">Total Pasien<br><span id="totalPasien">0</span></div>
-  <div class="card">Total HD<br><span id="totalHD">0</span></div>
-  <div class="card">Rawat Inap<br><span id="rawatInap">0</span></div>
-  <div class="card">Rawat Jalan<br><span id="rawatJalan">0</span></div>
+  <div class="card">
+    Total Pasien<br>
+    <span id="totalPasien">0</span>
+  </div>
+
+  <div class="card">
+    Total Tindakan HD<br>
+    <span id="totalHD">0</span>
+  </div>
+
+  <div class="card">
+    Rawat Inap<br>
+    <span id="rawatInap">0</span>
+  </div>
+
+  <div class="card">
+    Rawat Jalan<br>
+    <span id="rawatJalan">0</span>
+  </div>
 </div>
 
 <div class="cards">
-  <div class="card">AV-Shunt<br><span id="av">0</span></div>
-  <div class="card">Double Lumen<br><span id="dl">0</span></div>
-  <div class="card">Bed Terpakai<br><span id="bed">0 / 29</span></div>
+  <div class="card">
+    AV-Shunt<br>
+    <span id="av">0</span>
+  </div>
+
+  <div class="card">
+    Double Lumen<br>
+    <span id="dl">0</span>
+  </div>
+
+  <div class="card">
+    Bed Terpakai<br>
+    <span id="bed">0 / 29</span>
+  </div>
 </div>
+
+<!-- ======================
+     GRAFIK
+======================= -->
+<h2>Grafik Tindakan (7 Hari Terakhir)</h2>
+<canvas id="chartHD" height="120"></canvas>
 
 <hr>
 
-<!-- SLIDE 2 -->
+<!-- ======================
+     SLIDE 2 : DATA PASIEN
+======================= -->
 <h2>Data Pasien</h2>
 
 <table>
@@ -52,10 +88,14 @@
   <tbody id="table-body"></tbody>
 </table>
 
-<!-- Chart.js CDN -->
+<!-- ======================
+     SCRIPT
+======================= -->
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Script kita sendiri -->
+<!-- Script kita -->
 <script src="script.js"></script>
+
 </body>
 </html>
