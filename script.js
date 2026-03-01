@@ -1,9 +1,4 @@
-/* =========================
-   KONFIGURASI
-========================= */
-const API_BASE = "http://localhost:3001"; 
-// Ganti dengan URL backend Anda jika sudah online
-
+const API_BASE = "http://localhost:3001";
 let chartHD = null;
 
 /* =========================
@@ -12,58 +7,82 @@ let chartHD = null;
 function showDashboard() {
   document.getElementById("slide-dashboard").style.display = "block";
   document.getElementById("slide-pasien").style.display = "none";
-  
-  // Toggle active class untuk styling
   document.querySelectorAll('.nav-slide button').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
-  
+  // Fix event target undefined jika dipanggil dari domcontentloaded
+  if(event && event.target) event.target.classList.add('active');
   loadDashboard();
 }
 
 function showPasien() {
   document.getElementById("slide-dashboard").style.display = "none";
   document.getElementById("slide-pasien").style.display = "block";
-  
   document.querySelectorAll('.nav-slide button').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
-  
+  if(event && event.target) event.target.classList.add('active');
   loadTable();
 }
 
 /* =========================
-   LOAD DASHBOARD
+   FUNGSI LOGIKA RUANG (BARU)
+========================= */
+function toggleRuang() {
+  const status = document.getElementById("input-status").value;
+  const ruangInput = document.getElementById("input-ruang");
+  
+  if (status === "Rawat Jalan") {
+    ruangInput.disabled = true;
+    ruangInput.value = ""; // Kosongkan nilai
+  } else {
+    ruangInput.disabled = false;
+  }
+}
+
+/* =========================
+   LOAD DASHBOARD (DENGAN FILTER BARU)
 ========================= */
 async function loadDashboard() {
   try {
+    // Ambil nilai filter
     const shift = document.getElementById("shift").value;
-    // Pastikan endpoint backend Anda sesuai
-    const url = `${API_BASE}/api/dashboard${shift ? `?shift=${shift}` : ""}`;
+    const tim = document.getElementById("filter-tim").value;
+    const start = document.getElementById("filter-start").value;
+    const end = document.getElementById("filter-end").value;
+
+    // Bangun URL dengan query parameter
+    let url = `${API_BASE}/api/dashboard?`;
+    if (shift) url += `shift=${shift}&`;
+    if (tim) url += `tim=${tim}&`;
+    if (start) url += `start=${start}&`;
+    if (end) url += `end=${end}&`;
 
     const res = await fetch(url);
     const data = await res.json();
 
     document.getElementById("totalPasien").textContent = data.totalPasien || 0;
-    document.getElementById("totalHD").textContent = data.totalTindakan || 0;
+    // Total Tindakan = Total Pasien sesuai permintaan
+    document.getElementById("totalHD").textContent = data.totalPasien || 0; 
+    
     document.getElementById("rawatInap").textContent = data.rawatInap || 0;
     document.getElementById("rawatJalan").textContent = data.rawatJalan || 0;
-    document.getElementById("av").textContent = data.av || 0;
-    document.getElementById("dl").textContent = data.dl || 0;
-    document.getElementById("bed").textContent = `${data.totalPasien || 0} / 29`;
+    document.getElementById("av").textContent = data.vaskuler?.avShunt || 0;
+    document.getElementById("dl").textContent = data.vaskuler?.doubleLumen || 0;
+    
+    const terpakai = data.bed?.tim1?.terpakai + data.bed?.tim2?.terpakai;
+    document.getElementById("bed").textContent = `${terpakai || 0} / 29`;
 
     renderChart(data.chart || []);
 
   } catch (err) {
     console.error("Gagal load dashboard:", err);
-    // alert("Dashboard gagal dimuat"); // Uncomment jika ingin alert
   }
 }
 
 /* =========================
-   LOAD TABEL PASIEN (Perbaikan)
+   LOAD TABEL PASIEN
 ========================= */
 async function loadTable() {
   try {
-    // Endpoint untuk mendapatkan semua laporan/data pasien
+    // Untuk tabel di slide 2, kita bisa ambil semua data atau filter tanggal juga
+    // Disini ambil semua data terbaru
     const res = await fetch(`${API_BASE}/api/laporan`);
     const json = await res.json();
 
@@ -71,16 +90,14 @@ async function loadTable() {
     tbody.innerHTML = "";
 
     if (!json.data || json.data.length === 0) {
-      tbody.innerHTML = "<tr><td colspan='13' style='text-align:center'>Tidak ada data</td></tr>";
+      tbody.innerHTML = "<tr><td colspan='14' style='text-align:center'>Tidak ada data</td></tr>";
       return;
     }
 
     json.data.forEach(row => {
       const tr = document.createElement("tr");
-
-      // Sesuaikan key 'row' dengan data dari backend Anda
-      // Saya asumsikan key backend sama dengan field form (case sensitive)
       tr.innerHTML = `
+        <td>${row.tanggal || "-"}</td>
         <td>${row.nama || "-"}</td>
         <td>${row.mr || "-"}</td>
         <td>${row.shift || "-"}</td>
@@ -89,31 +106,29 @@ async function loadTable() {
         <td>${row.hf || "-"}</td>
         <td>${row.vaskuler || "-"}</td>
         <td>${row.ak1 || "-"}</td>
-        <td>${row.bicarbonate || row.bicarb || "-"}</td>
+        <td>${row.bicarb || "-"}</td>
         <td>${row.obat || "-"}</td>
-        <td style="color:${parseFloat(row.hb) < 8 ? "red" : "inherit"}; font-weight:${parseFloat(row.hb) < 8 ? "bold" : "normal"}">
-          ${row.hb || "-"}
-        </td>
+        <td style="color:${parseFloat(row.hb) < 8 ? "red" : "inherit"}">${row.hb || "-"}</td>
         <td>${row.status || "-"}</td>
         <td>${row.ruang || "-"}</td>
       `;
-
       tbody.appendChild(tr);
     });
 
   } catch (err) {
     console.error("Gagal load tabel:", err);
-    alert("Data pasien gagal dimuat. Pastikan backend berjalan di " + API_BASE);
   }
 }
 
 /* =========================
-   SUBMIT DATA PASIEN (BARU)
+   SUBMIT DATA PASIEN
 ========================= */
 async function submitPasien(e) {
   e.preventDefault();
 
-  // Kumpulkan data dari form
+  // Pastikan logika ruang berjalan sebelum kirim
+  toggleRuang(); 
+
   const data = {
     nama: document.getElementById("input-nama").value,
     mr: document.getElementById("input-mr").value,
@@ -123,12 +138,12 @@ async function submitPasien(e) {
     hf: document.getElementById("input-hf").value,
     vaskuler: document.getElementById("input-vaskuler").value,
     ak1: document.getElementById("input-ak1").value,
-    bicarbonate: document.getElementById("input-bicarb").value, // sesuaikan nama key backend
+    bicarbonate: document.getElementById("input-bicarb").value,
     obat: document.getElementById("input-obat").value,
     hb: document.getElementById("input-hb").value,
     status: document.getElementById("input-status").value,
     ruang: document.getElementById("input-ruang").value,
-    tanggal: new Date().toISOString().split('T')[0] // Tambahkan tanggal hari ini
+    tanggal: new Date().toISOString().split('T')[0]
   };
 
   try {
@@ -142,10 +157,11 @@ async function submitPasien(e) {
     
     if (res.ok) {
       alert("Data berhasil disimpan!");
-      document.getElementById("form-pasien").reset(); // Kosongkan form
-      loadTable(); // Refresh tabel
+      document.getElementById("form-pasien").reset();
+      toggleRuang(); // Reset state ruang ke default (disable)
+      loadTable(); 
     } else {
-      alert("Gagal simpan: " + (result.message || "Error unknown"));
+      alert("Gagal simpan: " + (result.error || "Error unknown"));
     }
 
   } catch (err) {
@@ -155,23 +171,21 @@ async function submitPasien(e) {
 }
 
 /* =========================
-   EXPORT PDF (BARU)
+   EXPORT PDF
 ========================= */
 function exportPDF() {
   const { jsPDF } = window.jspdf;
-  const element = document.getElementById("area-cetak"); // Area yang akan dicetak
+  const element = document.getElementById("area-cetak");
+  const btn = event.target;
 
-  // Tampilkan loading sederhana
-  const oldText = event.target.innerText;
-  event.target.innerText = "Processing...";
-  event.target.disabled = true;
+  const oldText = btn.innerText;
+  btn.innerText = "Processing...";
+  btn.disabled = true;
 
   html2canvas(element, { scale: 2 }).then(canvas => {
     const imgData = canvas.toDataURL('image/png');
-    
-    // Orientasi landscape agar tabel muat
     const pdf = new jsPDF('l', 'mm', 'a4'); 
-    const imgWidth = 280; // Lebar A4 landscape dalam mm
+    const imgWidth = 280; 
     const pageHeight = 210; 
     const imgHeight = canvas.height * imgWidth / canvas.width;
     
@@ -181,7 +195,6 @@ function exportPDF() {
     pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
 
-    // Jika tabel panjang, buat halaman baru
     while (heightLeft >= 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
@@ -192,9 +205,8 @@ function exportPDF() {
     const today = new Date().toLocaleDateString('id-ID');
     pdf.save(`Laporan_Dialisis_${today}.pdf`);
 
-    // Kembalikan tombol
-    event.target.innerText = oldText;
-    event.target.disabled = false;
+    btn.innerText = oldText;
+    btn.disabled = false;
   });
 }
 
@@ -203,20 +215,11 @@ function exportPDF() {
 ========================= */
 function renderChart(chartData) {
   const ctx = document.getElementById("chartHD");
-
   if (!ctx) return;
-
-  if (chartHD) {
-    chartHD.destroy();
-  }
+  if (chartHD) chartHD.destroy();
 
   if (chartData.length === 0) {
-    chartData = [
-      { label: "H-6", value: 0 }, { label: "H-5", value: 0 },
-      { label: "H-4", value: 0 }, { label: "H-3", value: 0 },
-      { label: "H-2", value: 0 }, { label: "H-1", value: 0 },
-      { label: "Hari ini", value: 0 }
-    ];
+    chartData = [{ label: "Tidak ada data", value: 0 }];
   }
 
   chartHD = new Chart(ctx, {
@@ -232,16 +235,22 @@ function renderChart(chartData) {
     options: {
       responsive: true,
       plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, ticks: { precision: 0 } }
-      }
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
     }
   });
 }
 
 /* =========================
-   AUTO LOAD
+   AUTO LOAD & DEFAULT DATE
 ========================= */
 document.addEventListener("DOMContentLoaded", () => {
+  // Set tanggal default ke hari ini
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById("filter-start").value = today;
+  document.getElementById("filter-end").value = today;
+
+  // Init logika ruang
+  toggleRuang();
+  
   showDashboard();
 });
