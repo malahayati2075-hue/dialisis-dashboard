@@ -4,7 +4,7 @@ let chartHD = null;
 
 /* =========================
    FUNGSI HELPER TANGGAL LOKAL
-   Mengambil tanggal saat ini sesuai zona waktu komputer (WIB/WITA/WIT)
+   Untuk mengisi default tanggal hari ini
 ========================= */
 function getLocalDate() {
   const now = new Date();
@@ -84,6 +84,7 @@ async function loadDashboard() {
     const totalBed = data.bed?.total || 29;
     document.getElementById("bed").textContent = `${terpakai || 0} / ${totalBed}`;
 
+    // Default grafik menampilkan Total Pasien
     changeChart('total', 'Total Pasien');
 
   } catch (err) {
@@ -93,10 +94,11 @@ async function loadDashboard() {
 
 /* =========================
    FUNGSI GANTI GRAFIK
+   Logika Batas Atas (Max Y) berdasarkan Tim
 ========================= */
 function changeChart(type, label) {
   const tim = document.getElementById("filter-tim").value;
-  let maxY = 29; 
+  let maxY = 29; // Default (Semua Tim)
 
   if (tim === "Tim 1") maxY = 15;
   else if (tim === "Tim 2") maxY = 14;
@@ -148,7 +150,7 @@ async function loadTable() {
 
 /* =========================
    SUBMIT DATA PASIEN
-   PERBAIKAN: Pakai getLocalDate() agar sesuai tanggal komputer
+   Tanggal diambil dari input manual
 ========================= */
 async function submitPasien(e) {
   e.preventDefault();
@@ -168,7 +170,7 @@ async function submitPasien(e) {
     hb: document.getElementById("input-hb").value,
     status: document.getElementById("input-status").value,
     ruang: document.getElementById("input-ruang").value,
-    tanggal: getLocalDate() // <-- PERBAIKAN DI SINI
+    tanggal: document.getElementById("input-tanggal").value // Ambil dari form
   };
 
   try {
@@ -183,6 +185,8 @@ async function submitPasien(e) {
     if (res.ok) {
       alert("Data berhasil disimpan!");
       document.getElementById("form-pasien").reset();
+      // Set kembali tanggal ke hari ini setelah reset
+      document.getElementById("input-tanggal").value = getLocalDate();
       toggleRuang();
       loadTable(); 
     } else {
@@ -237,6 +241,7 @@ function exportPDF() {
 
 /* =========================
    GRAFIK CHART.JS
+   Pengaturan responsif dan font kecil
 ========================= */
 function renderChart(chartData, type, label, maxY) {
   const ctx = document.getElementById("chartHD");
@@ -261,9 +266,12 @@ function renderChart(chartData, type, label, maxY) {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: false, // Mengikuti tinggi container CSS
       plugins: { 
-        legend: { display: true, labels: { font: { size: 10 } } }
+        legend: { 
+          display: true,
+          labels: { font: { size: 10 } }
+        }
       },
       scales: { 
         y: { 
@@ -285,13 +293,17 @@ function renderChart(chartData, type, label, maxY) {
 
 /* =========================
    AUTO LOAD
-   PERBAIKAN: Filter default pakai getLocalDate()
+   Set default tanggal
 ========================= */
 document.addEventListener("DOMContentLoaded", () => {
-  // Set filter default ke hari ini (Lokal)
   const today = getLocalDate();
+  
+  // Set Filter Dashboard
   document.getElementById("filter-start").value = today;
   document.getElementById("filter-end").value = today;
+
+  // Set Default Input Form Tanggal
+  document.getElementById("input-tanggal").value = today;
 
   toggleRuang();
   showDashboard();
