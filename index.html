@@ -108,10 +108,16 @@
       </div>
     </div>
 
-    <!-- FORM INPUT -->
+      <!-- FORM INPUT (DIPERBARUI) -->
     <div class="form-container">
       <form id="form-pasien" onsubmit="return submitPasien(event)">
+        
+        <!-- BARIS 1: Ditambahkan Input Tanggal -->
         <div class="form-row">
+          <div class="form-group">
+            <label>Tanggal Tindakan</label>
+            <input type="date" id="input-tanggal" required>
+          </div>
           <div class="form-group">
             <label>Nama Pasien</label>
             <input type="text" id="input-nama" required placeholder="Nama Lengkap">
@@ -136,6 +142,7 @@
           </div>
         </div>
 
+        <!-- BARIS 2 -->
         <div class="form-row">
           <div class="form-group">
             <label>Jenis Bayar</label>
@@ -167,6 +174,7 @@
           </div>
         </div>
 
+        <!-- BARIS 3 -->
         <div class="form-row">
            <div class="form-group">
             <label>AK1</label>
@@ -196,7 +204,6 @@
         <button type="submit" class="btn-simpan">Simpan Data Pasien</button>
       </form>
     </div>
-
     <!-- TABEL DATA -->
     <h2 style="margin-top: 30px;">Riwayat Data Pasien</h2>
     <div id="area-cetak">
