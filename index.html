@@ -19,13 +19,32 @@
     <button onclick="showPasien()">Data Pasien</button>
   </div>
 
-  <!-- FILTER -->
+  <!-- FILTER (DIPERBARUI) -->
   <div class="filter">
-    <select id="shift">
-      <option value="">Semua Shift</option>
-      <option value="1">Shift 1</option>
-      <option value="2">Shift 2</option>
-    </select>
+    <div class="filter-group">
+      <label>Tanggal Mulai</label>
+      <input type="date" id="filter-start">
+    </div>
+    <div class="filter-group">
+      <label>Tanggal Akhir</label>
+      <input type="date" id="filter-end">
+    </div>
+    <div class="filter-group">
+      <label>Shift</label>
+      <select id="shift">
+        <option value="">Semua Shift</option>
+        <option value="1">Shift 1</option>
+        <option value="2">Shift 2</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Tim</label>
+      <select id="filter-tim">
+        <option value="">Semua Tim</option>
+        <option value="Tim 1">Tim 1</option>
+        <option value="Tim 2">Tim 2</option>
+      </select>
+    </div>
     <button onclick="loadDashboard()">Terapkan Filter</button>
   </div>
 
@@ -33,7 +52,6 @@
        SLIDE 1 : DASHBOARD
   ======================= -->
   <div id="slide-dashboard">
-
     <div class="cards">
       <div class="card">
         Total Pasien<br>
@@ -68,11 +86,10 @@
       </div>
     </div>
 
-    <h2>Grafik Tindakan (7 Hari Terakhir)</h2>
+    <h2>Grafik Tindakan (Periode Terpilih)</h2>
     <div class="chart-container">
       <canvas id="chartHD" height="120"></canvas>
     </div>
-
   </div>
 
   <!-- ======================
@@ -84,11 +101,10 @@
       <h2>Input Data Pasien Baru</h2>
       <div class="btn-group">
         <button onclick="exportPDF()" class="btn-pdf">Cetak PDF</button>
-        <!-- Tombol WA bisa ditambahkan di sini jika perlu -->
       </div>
     </div>
 
-    <!-- FORM INPUT -->
+    <!-- FORM INPUT (DIPERBARUI) -->
     <div class="form-container">
       <form id="form-pasien" onsubmit="return submitPasien(event)">
         <div class="form-row">
@@ -109,7 +125,10 @@
           </div>
           <div class="form-group">
             <label>Tim</label>
-            <input type="text" id="input-tim" placeholder="Nama Tim">
+            <select id="input-tim">
+              <option value="Tim 1">Tim 1</option>
+              <option value="Tim 2">Tim 2</option>
+            </select>
           </div>
         </div>
 
@@ -157,16 +176,18 @@
             <label>Obat</label>
             <input type="text" id="input-obat" placeholder="Nama Obat">
           </div>
+          <!-- STATUS DIUBAH KE LENGKAP -->
           <div class="form-group">
             <label>Status</label>
-            <select id="input-status">
-              <option>RJ</option>
-              <option>RI</option>
+            <select id="input-status" onchange="toggleRuang()">
+              <option value="Rawat Jalan">Rawat Jalan</option>
+              <option value="Rawat Inap">Rawat Inap</option>
             </select>
           </div>
+          <!-- RUANG DINONAKTIFKAN DEFAULT -->
           <div class="form-group">
             <label>Ruang</label>
-            <input type="text" id="input-ruang" placeholder="Nama Ruangan">
+            <input type="text" id="input-ruang" placeholder="Nama Ruangan" disabled>
           </div>
         </div>
 
@@ -176,10 +197,11 @@
 
     <!-- TABEL DATA -->
     <h2 style="margin-top: 30px;">Riwayat Data Pasien</h2>
-    <div id="area-cetak"> <!-- ID ini untuk area cetak PDF -->
+    <div id="area-cetak">
       <table id="tabel-pasien">
         <thead>
           <tr>
+            <th>Tanggal</th>
             <th>Nama</th>
             <th>MR</th>
             <th>Shift</th>
