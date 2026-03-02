@@ -1,115 +1,80 @@
 const API_BASE = "http://localhost:3001";
 let globalChartData = []; 
 let chartHD = null;
+let masterPasienData = []; // Cache data master
+
+// ... (Helper Date, Navigasi, Toggle Ruang sama seperti sebelumnya) ...
 
 /* =========================
-   FUNGSI HELPER TANGGAL LOKAL
-   Untuk mengisi default tanggal hari ini
+   LOAD MASTER PASIEN & SETUP AUTOCOMPLETE
 ========================= */
-function getLocalDate() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-/* =========================
-   NAVIGASI SLIDE
-========================= */
-function showDashboard(e) {
-  document.getElementById("slide-dashboard").style.display = "block";
-  document.getElementById("slide-pasien").style.display = "none";
-  
-  document.querySelectorAll('.nav-slide button').forEach(btn => btn.classList.remove('active'));
-  if(e && e.target) e.target.classList.add('active');
-  
-  loadDashboard();
-}
-
-function showPasien(e) {
-  document.getElementById("slide-dashboard").style.display = "none";
-  document.getElementById("slide-pasien").style.display = "block";
-  
-  document.querySelectorAll('.nav-slide button').forEach(btn => btn.classList.remove('active'));
-  if(e && e.target) e.target.classList.add('active');
-  
-  loadTable();
-}
-
-/* =========================
-   FUNGSI LOGIKA RUANG
-========================= */
-function toggleRuang() {
-  const status = document.getElementById("input-status").value;
-  const ruangInput = document.getElementById("input-ruang");
-  
-  if (status === "Rawat Jalan") {
-    ruangInput.disabled = true;
-    ruangInput.value = "";
-  } else {
-    ruangInput.disabled = false;
-  }
-}
-
-/* =========================
-   LOAD DASHBOARD
-========================= */
-async function loadDashboard() {
+async function loadMasterPasien() {
   try {
-    const shift = document.getElementById("shift").value;
-    const tim = document.getElementById("filter-tim").value;
-    const start = document.getElementById("filter-start").value;
-    const end = document.getElementById("filter-end").value;
+    // Cek cache, jika sudah ada tidak perlu load ulang
+    if (masterPasienData.length === 0) {
+      const res = await fetch(`${API_BASE}/api/master-pasien`);
+      const result = await res.json();
+      masterPasienData = result.data || [];
+      
+      // Update Total Master di Dashboard jika elemen ada
+      const totalEl = document.getElementById("masterTotal");
+      if(totalEl) totalEl.textContent = result.total || 0;
+    }
 
-    let url = `${API_BASE}/api/dashboard?`;
-    if (shift) url += `shift=${shift}&`;
-    if (tim) url += `tim=${tim}&`;
-    if (start) url += `start=${start}&`;
-    if (end) url += `end=${end}&`;
+    // Isi Datalist Nama
+    const listNama = document.getElementById("list-nama");
+    if(listNama){
+      listNama.innerHTML = "";
+      masterPasienData.forEach(p => {
+        const option = document.createElement("option");
+        option.value = p.nama;
+        listNama.appendChild(option);
+      });
+    }
 
-    const res = await fetch(url);
-    const data = await res.json();
-
-    globalChartData = data.chart || [];
-
-    document.getElementById("totalPasien").textContent = data.totalPasien || 0;
-    document.getElementById("totalHD").textContent = data.totalPasien || 0; 
-    document.getElementById("rawatInap").textContent = data.rawatInap || 0;
-    document.getElementById("rawatJalan").textContent = data.rawatJalan || 0;
-    document.getElementById("av").textContent = data.vaskuler?.avShunt || 0;
-    document.getElementById("dl").textContent = data.vaskuler?.doubleLumen || 0;
-    
-    const terpakai = data.bed?.tim1?.terpakai + data.bed?.tim2?.terpakai;
-    const totalBed = data.bed?.total || 29;
-    document.getElementById("bed").textContent = `${terpakai || 0} / ${totalBed}`;
-
-    // Default grafik menampilkan Total Pasien
-    changeChart('total', 'Total Pasien');
+    // Isi Datalist MR
+    const listMr = document.getElementById("list-mr");
+    if(listMr){
+      listMr.innerHTML = "";
+      masterPasienData.forEach(p => {
+        const option = document.createElement("option");
+        option.value = p.mr;
+        listMr.appendChild(option);
+      });
+    }
 
   } catch (err) {
-    console.error("Gagal load dashboard:", err);
+    console.error("Gagal load master pasien:", err);
+  }
+}
+
+// Fungsi Sinkronisasi Nama <-> MR (VLOOKUP)
+function setupAutoComplete() {
+  const inputNama = document.getElementById("input-nama");
+  const inputMr = document.getElementById("input-mr");
+
+  if (inputNama) {
+    inputNama.addEventListener('input', function() {
+      // Cari di master data nama yang sama persis (case insensitive)
+      const found = masterPasienData.find(p => p.nama.toLowerCase() === this.value.toLowerCase());
+      if (found) {
+        inputMr.value = found.mr;
+      }
+    });
+  }
+
+  if (inputMr) {
+    inputMr.addEventListener('input', function() {
+      const found = masterPasienData.find(p => p.mr === this.value);
+      if (found) {
+        inputNama.value = found.nama;
+      }
+    });
   }
 }
 
 /* =========================
-   FUNGSI GANTI GRAFIK
-   Logika Batas Atas (Max Y) berdasarkan Tim
-========================= */
-function changeChart(type, label) {
-  const tim = document.getElementById("filter-tim").value;
-  let maxY = 29; // Default (Semua Tim)
-
-  if (tim === "Tim 1") maxY = 15;
-  else if (tim === "Tim 2") maxY = 14;
-
-  renderChart(globalChartData, type, label, maxY);
-}
-
-// ... (bagian awal script.js sama) ...
-
-/* =========================
-   LOAD TABLE (URUTAN BARU)
+   LOAD TABLE (Urutan Baru)
 ========================= */
 async function loadTable() {
   try {
@@ -152,8 +117,9 @@ async function loadTable() {
     console.error("Gagal load tabel:", err);
   }
 }
+
 /* =========================
-   SUBMIT PASIEN (Dengan Jarum)
+   SUBMIT PASIEN (Dengan Logika Baru)
 ========================= */
 async function submitPasien(e) {
   e.preventDefault();
@@ -167,11 +133,12 @@ async function submitPasien(e) {
     bayar: document.getElementById("input-bayar").value,
     hf: document.getElementById("input-hf").value,
     vaskuler: document.getElementById("input-vaskuler").value,
-    jarum: document.getElementById("input-jarum").value, // Kirim data jarum
+    jarum: document.getElementById("input-jarum").value, // Text
     ak1: document.getElementById("input-ak1").value,
     bicarbonate: document.getElementById("input-bicarb").value,
     obat: document.getElementById("input-obat").value,
     hb: document.getElementById("input-hb").value,
+    ktv: document.getElementById("input-ktv").value,
     status: document.getElementById("input-status").value,
     ruang: document.getElementById("input-ruang").value,
     tanggal: document.getElementById("input-tanggal").value
@@ -188,9 +155,18 @@ async function submitPasien(e) {
     
     if (res.ok) {
       alert("Data berhasil disimpan!");
+      
+      // Reset Form
       document.getElementById("form-pasien").reset();
+      
+      // Set Kembali Nilai Default Setelah Reset
       document.getElementById("input-tanggal").value = getLocalDate();
-      toggleRuang();
+      document.getElementById("input-jarum").value = "25/32 (1/1)"; // Default Jarum
+      document.getElementById("input-ak1").value = "0.5";           // Default AK1
+      document.getElementById("input-bicarb").value = "1";          // Default Bicarb
+      document.getElementById("input-ktv").value = "1.4";           // Default Kt/V
+      
+      toggleRuang(); // Reset status ruang
       loadTable(); 
     } else {
       alert("Gagal simpan: " + (result.error || "Error unknown"));
@@ -202,114 +178,23 @@ async function submitPasien(e) {
   }
 }
 
-// ... (Sisa kode sama) ...
-
-/* =========================
-   EXPORT PDF
-========================= */
-function exportPDF() {
-  const { jsPDF } = window.jspdf;
-  const element = document.getElementById("area-cetak");
-  const btn = event.target;
-
-  const oldText = btn.innerText;
-  btn.innerText = "Processing...";
-  btn.disabled = true;
-
-  html2canvas(element, { scale: 2 }).then(canvas => {
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('l', 'mm', 'a4'); 
-    const imgWidth = 280; 
-    const pageHeight = 210; 
-    const imgHeight = canvas.height * imgWidth / canvas.width;
-    
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft >= 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-    }
-
-    const today = new Date().toLocaleDateString('id-ID');
-    pdf.save(`Laporan_Dialisis_${today}.pdf`);
-
-    btn.innerText = oldText;
-    btn.disabled = false;
-  });
-}
-
-/* =========================
-   GRAFIK CHART.JS
-   Pengaturan responsif dan font kecil
-========================= */
-function renderChart(chartData, type, label, maxY) {
-  const ctx = document.getElementById("chartHD");
-  if (!ctx) return;
-  if (chartHD) chartHD.destroy();
-
-  if (chartData.length === 0) {
-    chartData = [{ label: "Tidak ada data", total: 0, rawatInap: 0, rawatJalan: 0, avShunt: 0, doubleLumen: 0 }];
-  }
-
-  let values = chartData.map(d => d[type] || 0);
-
-  chartHD = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: chartData.map(d => d.label),
-      datasets: [{
-        label: label,
-        data: values,
-        backgroundColor: "#0ea5e9"
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false, // Mengikuti tinggi container CSS
-      plugins: { 
-        legend: { 
-          display: true,
-          labels: { font: { size: 10 } }
-        }
-      },
-      scales: { 
-        y: { 
-          beginAtZero: true, 
-          max: maxY,
-          ticks: { precision: 0, font: { size: 10 } } 
-        },
-        x: {
-          ticks: {
-            font: { size: 10 },
-            maxRotation: 0,
-            autoSkip: true
-          }
-        }
-      }
-    }
-  });
-}
-
 /* =========================
    AUTO LOAD
-   Set default tanggal
 ========================= */
 document.addEventListener("DOMContentLoaded", () => {
   const today = getLocalDate();
-  
-  // Set Filter Dashboard
   document.getElementById("filter-start").value = today;
   document.getElementById("filter-end").value = today;
+  
+  // Set Default Form Input
+  if(document.getElementById("input-tanggal")) document.getElementById("input-tanggal").value = today;
+  if(document.getElementById("input-jarum")) document.getElementById("input-jarum").value = "25/32 (1/1)";
+  if(document.getElementById("input-ak1")) document.getElementById("input-ak1").value = "0.5";
+  if(document.getElementById("input-bicarb")) document.getElementById("input-bicarb").value = "1";
+  if(document.getElementById("input-ktv")) document.getElementById("input-ktv").value = "1.4";
 
-  // Set Default Input Form Tanggal
-  document.getElementById("input-tanggal").value = today;
-
-  toggleRuang();
+  // Setup Autocomplete listener
+  setupAutoComplete();
+  
   showDashboard();
 });
