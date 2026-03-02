@@ -106,8 +106,10 @@ function changeChart(type, label) {
   renderChart(globalChartData, type, label, maxY);
 }
 
+// ... (bagian awal script.js sama) ...
+
 /* =========================
-   LOAD TABEL PASIEN
+   LOAD TABLE (Dengan Kolom Jarum)
 ========================= */
 async function loadTable() {
   try {
@@ -118,7 +120,7 @@ async function loadTable() {
     tbody.innerHTML = "";
 
     if (!json.data || json.data.length === 0) {
-      tbody.innerHTML = "<tr><td colspan='14' style='text-align:center'>Tidak ada data</td></tr>";
+      tbody.innerHTML = "<tr><td colspan='15' style='text-align:center'>Tidak ada data</td></tr>";
       return;
     }
 
@@ -133,6 +135,7 @@ async function loadTable() {
         <td>${row.bayar || "-"}</td>
         <td>${row.hf || "-"}</td>
         <td>${row.vaskuler || "-"}</td>
+        <td>${row.jarum || "-"}</td> <!-- Tambah Kolom Jarum -->
         <td>${row.ak1 || "-"}</td>
         <td>${row.bicarb || "-"}</td>
         <td>${row.obat || "-"}</td>
@@ -149,8 +152,7 @@ async function loadTable() {
 }
 
 /* =========================
-   SUBMIT DATA PASIEN
-   Tanggal diambil dari input manual
+   SUBMIT PASIEN (Dengan Jarum)
 ========================= */
 async function submitPasien(e) {
   e.preventDefault();
@@ -164,13 +166,14 @@ async function submitPasien(e) {
     bayar: document.getElementById("input-bayar").value,
     hf: document.getElementById("input-hf").value,
     vaskuler: document.getElementById("input-vaskuler").value,
+    jarum: document.getElementById("input-jarum").value, // Kirim data jarum
     ak1: document.getElementById("input-ak1").value,
     bicarbonate: document.getElementById("input-bicarb").value,
     obat: document.getElementById("input-obat").value,
     hb: document.getElementById("input-hb").value,
     status: document.getElementById("input-status").value,
     ruang: document.getElementById("input-ruang").value,
-    tanggal: document.getElementById("input-tanggal").value // Ambil dari form
+    tanggal: document.getElementById("input-tanggal").value
   };
 
   try {
@@ -185,7 +188,6 @@ async function submitPasien(e) {
     if (res.ok) {
       alert("Data berhasil disimpan!");
       document.getElementById("form-pasien").reset();
-      // Set kembali tanggal ke hari ini setelah reset
       document.getElementById("input-tanggal").value = getLocalDate();
       toggleRuang();
       loadTable(); 
@@ -198,6 +200,8 @@ async function submitPasien(e) {
     alert("Gagal menghubungi server.");
   }
 }
+
+// ... (Sisa kode sama) ...
 
 /* =========================
    EXPORT PDF
