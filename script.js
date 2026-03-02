@@ -109,7 +109,7 @@ function changeChart(type, label) {
 // ... (bagian awal script.js sama) ...
 
 /* =========================
-   LOAD TABLE (Dengan Kolom Jarum)
+   LOAD TABLE (URUTAN BARU)
 ========================= */
 async function loadTable() {
   try {
@@ -120,12 +120,13 @@ async function loadTable() {
     tbody.innerHTML = "";
 
     if (!json.data || json.data.length === 0) {
-      tbody.innerHTML = "<tr><td colspan='15' style='text-align:center'>Tidak ada data</td></tr>";
+      tbody.innerHTML = "<tr><td colspan='16' style='text-align:center'>Tidak ada data</td></tr>";
       return;
     }
 
     json.data.forEach(row => {
       const tr = document.createElement("tr");
+      // Urutan: Tgl, Nama, MR, Shift, Tim, Bayar, HF, Vaskuler, Jarum, AK1, Bicarb, Obat, Hb, Kt/V, Status, Ruang
       tr.innerHTML = `
         <td>${row.tanggal || "-"}</td>
         <td>${row.nama || "-"}</td>
@@ -135,11 +136,12 @@ async function loadTable() {
         <td>${row.bayar || "-"}</td>
         <td>${row.hf || "-"}</td>
         <td>${row.vaskuler || "-"}</td>
-        <td>${row.jarum || "-"}</td> <!-- Tambah Kolom Jarum -->
+        <td>${row.jarum || "-"}</td>
         <td>${row.ak1 || "-"}</td>
         <td>${row.bicarb || "-"}</td>
         <td>${row.obat || "-"}</td>
         <td style="color:${parseFloat(row.hb) < 8 ? "red" : "inherit"}">${row.hb || "-"}</td>
+        <td>${row.ktv || "-"}</td>
         <td>${row.status || "-"}</td>
         <td>${row.ruang || "-"}</td>
       `;
@@ -150,7 +152,6 @@ async function loadTable() {
     console.error("Gagal load tabel:", err);
   }
 }
-
 /* =========================
    SUBMIT PASIEN (Dengan Jarum)
 ========================= */
